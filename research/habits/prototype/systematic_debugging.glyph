@@ -1,0 +1,50 @@
+// Systematic Debugging: Agent-Facing Habit Definition
+// Compiles to Markdown instructions for the coding agent.
+
+import "@glyph/std" { runs_commands }
+
+const avoid_guessing_fixes = """
+Do not propose or apply code edits until Phase 1 and Phase 2 are complete, 
+and a formal hypothesis is registered. Symptom-fixing without identifying 
+root cause is strictly prohibited.
+"""
+
+const preserve_existing_patterns = """
+Prefer matching existing patterns, names, and architectures in the codebase.
+"""
+habit systematic_debugging(repro_cmd, test_cmd)
+    description: "Systematically debug and fix errors, regressions, or unexpected behaviors."
+    goal: "The bug is fixed at the root cause, and a regression test prevents it from returning."
+    
+    constraints:
+        must avoid_guessing_fixes
+        require preserve_existing_patterns
+        
+    flow:
+        // Phase 1: Investigation
+        "Initialize the session by running the reproduction test: `python3 dbg.py init --repro-cmd \"{repro_cmd}\"`."
+        
+        "Trace the execution flow backward from the failure point (symptom) to its origin."
+        "Record the backward trace and evidence: `python3 dbg.py phase1-trace --symptom <location> --origin <location> --flow-log \"<log_data>\"`."
+        
+        // Phase 2: Pattern Analysis
+        "Find working examples of this pattern in the codebase and write down the comparison analysis."
+        "Record comparison details: `python3 dbg.py compare --working <loc> --broken <loc> --diff-analysis \"<analysis_text>\"`."
+        
+        // Phase 3: Hypothesis Testing
+        "Formulate a single hypothesis on the root cause: `python3 dbg.py hypothesis --theory \"<theory_explanation>\"`."
+        "Apply your test patch and execute verification: `python3 dbg.py test-hypothesis --patch <patch_file>`."
+        
+        // Handle failure and possible block
+        if "the test command returned BLOCKED_ARCHITECTURAL_REVIEW":
+            "Do NOT attempt further patches or changes."
+            "Run `python3 dbg.py discuss-architecture` to inspect coupling issues."
+            "Discuss the findings with the human partner before touching any code."
+        
+        // Phase 4: Implementation
+        "Once a hypothesis is verified, run: `python3 dbg.py implement --test-command \"{test_cmd}\" --fix-patch <patch_file>`."
+        
+        // Escape Hatch (Bypass)
+        if "the CLI tool crashes, encounters environment blocks, or fails due to a tool bug":
+            "Run `python3 dbg.py bypass --reason \"<detailed_reason_for_bypassing_checks>\"`."
+            "Once bypass is logged, manual debugging is permitted. Document your manual verification steps."
