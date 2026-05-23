@@ -2,7 +2,7 @@
 
 ## Research
 
-- [research/](research/) — tiered research wiki
+- [research/](research/) — local Athena research wiki, intentionally ignored by git
 
 ## Design
 
