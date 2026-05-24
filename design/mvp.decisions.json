@@ -1,0 +1,305 @@
+{
+  "spec_id": "habits-mvp",
+  "spec_title": "Habits MVP",
+  "source_path": "mvp.md",
+  "version": 1,
+  "generated_at": "2026-05-23T00:00:00+00:00",
+  "applied_from_review": null,
+  "nodes": [
+    {
+      "id": "deci-mvp-shape",
+      "kind": "decision",
+      "title": "MVP must include the full Habit lifecycle, not just init",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [],
+      "source_anchor": "deci-mvp-shape",
+      "rationale": "Recovery and self-evolution are what make a Habit different from a static skill. They have to be wired in from day one even if simple, otherwise the MVP doesn't test the real shape.",
+      "alternatives": [
+        "ship a design-only initializer first and add runtime/recovery/evolve later",
+        "split MVP into two milestones: lifecycle bones now, evolution later"
+      ],
+      "review": null
+    },
+    {
+      "id": "deci-lifecycle-commands",
+      "kind": "decision",
+      "title": "Six-command lifecycle: init / materialize / next / record / recover / evolve",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [
+        "deci-mvp-shape"
+      ],
+      "source_anchor": "deci-lifecycle-commands",
+      "rationale": "Smallest complete set of verbs that proves the loop end to end for a Habit built from scratch.",
+      "alternatives": [
+        "collapse next + record into a single 'step' command",
+        "drop materialize and run the contract directly",
+        "fold recover into next as a special-case response"
+      ],
+      "review": null
+    },
+    {
+      "id": "deci-manual-evolution",
+      "kind": "decision",
+      "title": "Evolution is manual and reviewable, not autonomous",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [
+        "deci-lifecycle-commands"
+      ],
+      "source_anchor": "deci-manual-evolution",
+      "rationale": "Autonomous self-modification is too risky for v1 and would couple the MVP to trust/safety problems that aren't the point of the experiment.",
+      "alternatives": [
+        "auto-apply low-risk proposals without review",
+        "skip evolve entirely for MVP and add it after first real Habit lands"
+      ],
+      "review": null
+    },
+    {
+      "id": "deci-core-split",
+      "kind": "decision",
+      "title": "Two layers: common substrate (system-owned) and habit-specific contract (user-owned)",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [],
+      "source_anchor": "deci-core-split",
+      "rationale": "Clear ownership boundary lets the system harden machinery once while each Habit defines its own routine, gates, recovery, and evolution.",
+      "alternatives": [
+        "single-layer Habit definition without a substrate",
+        "three-layer split with a separate runtime/router tier"
+      ],
+      "review": null
+    },
+    {
+      "id": "amb-contract-format",
+      "kind": "ambiguity",
+      "title": "What concrete file formats does the habit-specific contract accept?",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-core-split"
+      ],
+      "source_anchor": "amb-contract-format",
+      "prompt": "The spec says the contract can mix Markdown, YAML, Glyph, Python adapters, or other code. For the MVP, which combination does the first materializer actually have to consume?",
+      "options": [
+        {
+          "id": "md-yaml-only",
+          "label": "Markdown + YAML only",
+          "body": "MVP materializer reads guided Markdown contract files plus a small set of YAML configs. No code execution. Glyph and Python adapters are deferred."
+        },
+        {
+          "id": "md-yaml-plus-helpers",
+          "label": "Markdown + YAML + optional Python helper module",
+          "body": "MVP materializer reads Markdown + YAML and optionally loads a single Python module that exposes deterministic helpers. No Glyph yet."
+        },
+        {
+          "id": "full-mix",
+          "label": "Full mix from day one",
+          "body": "MVP materializer must handle Markdown, YAML, Glyph, and Python adapters together. Higher cost; broader coverage of real Habits."
+        }
+      ],
+      "resolution": null,
+      "review": null
+    },
+    {
+      "id": "deci-mvp-scope-boundaries",
+      "kind": "decision",
+      "title": "MVP scope: what's in, what's out, no skill-import converter yet",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [
+        "deci-mvp-shape",
+        "deci-lifecycle-commands",
+        "deci-canonical-example"
+      ],
+      "source_anchor": "deci-mvp-scope-boundaries",
+      "rationale": "Locks the surface area of v1. In scope is the bare-minimum loop plus a simple test harness and one canonical example. Out of scope explicitly excludes autonomous self-modification, state-machine compilation, cross-project trace mining, DSPy/model-judgment nodes, marketplace packaging, and general arbitrary scripting. The MVP also intentionally does not ship an `import-skill` converter \u2014 existing skills are reference material, not auto-converted Habits.",
+      "alternatives": [
+        "include an import-skill converter in v1 to seed the first Habits from existing tooling",
+        "drop the simple test harness from v1 scope and rely on manual ad-hoc testing",
+        "include a richer state-machine language to broaden what the materializer can compile"
+      ],
+      "review": null
+    },
+    {
+      "id": "amb-init-interactive",
+      "kind": "ambiguity",
+      "title": "Does `habit init` need an interactive interview or are guided files enough?",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-lifecycle-commands"
+      ],
+      "source_anchor": "amb-init-interactive",
+      "prompt": "The spec leans toward 'files are enough if they are clear and complete.' Confirm: is the MVP allowed to ship without any interactive prompts, or do certain contract sections need a guided Q&A?",
+      "options": [
+        {
+          "id": "files-only",
+          "label": "Files only",
+          "body": "MVP generates the contract folder with guided question prose inside each file. The user fills them in offline. No interactive prompts."
+        },
+        {
+          "id": "interactive-core",
+          "label": "Interactive for core sections",
+          "body": "MVP prompts interactively for routine.md, gates.md, and recovery.md (the highest-stakes contract pieces), and leaves the rest as files."
+        }
+      ],
+      "resolution": null,
+      "review": null
+    },
+    {
+      "id": "amb-materializer-scope",
+      "kind": "ambiguity",
+      "title": "What counts as a 'constrained contract format' for the first materializer?",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-lifecycle-commands",
+        "amb-contract-format"
+      ],
+      "source_anchor": "amb-materializer-scope",
+      "prompt": "The materializer doesn't need to support arbitrary logic or Glyph compilation. Define the constraint: which contract patterns is it required to handle, and which does it explicitly reject with a clear error?",
+      "options": [
+        {
+          "id": "linear-phases",
+          "label": "Linear phases + required-evidence gates only",
+          "body": "Materializer compiles an ordered list of phases, each with required-evidence gates and a single instruction packet. No branching, no parallel phases."
+        },
+        {
+          "id": "linear-plus-branch",
+          "label": "Linear phases with simple conditional branches",
+          "body": "Like the linear option, but phases may branch on a single ledger-field condition. Still no parallel phases and no loops."
+        }
+      ],
+      "resolution": null,
+      "review": null
+    },
+    {
+      "id": "risk-recovery-coverage",
+      "kind": "risk",
+      "title": "First recovery system may not cover enough failure modes to feel useful",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-lifecycle-commands"
+      ],
+      "source_anchor": "risk-recovery-coverage",
+      "severity": "medium",
+      "mitigation": "Enumerate the seven p2p recovery codes (unsupported terminal, own surface unresolved, name collision, peer not found, stale peer surface, bootstrap parse failure, send-buffer failure) and require structured handoffs for each before declaring MVP done. Track real failures in the ledger and let `habit evolve` surface gaps.",
+      "review": null
+    },
+    {
+      "id": "amb-evolution-apply",
+      "kind": "ambiguity",
+      "title": "Does `habit evolve` apply approved patches or just write proposal files?",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-manual-evolution"
+      ],
+      "source_anchor": "amb-evolution-apply",
+      "prompt": "The spec says applying the change 'can be manual' for the MVP. Confirm whether the MVP writes a reviewable proposal and stops, or whether it can apply the patch after explicit user approval.",
+      "options": [
+        {
+          "id": "proposal-only",
+          "label": "Proposal only",
+          "body": "`habit evolve` writes the proposal file and stops. The user applies the patch by hand. Lowest blast radius."
+        },
+        {
+          "id": "approve-then-apply",
+          "label": "Approve-then-apply",
+          "body": "`habit evolve` writes the proposal. A separate command (or flag) applies it after explicit user approval. Tighter loop, slightly more machinery."
+        }
+      ],
+      "resolution": null,
+      "review": null
+    },
+    {
+      "id": "deci-canonical-example",
+      "kind": "decision",
+      "title": "p2p is the canonical MVP Habit",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [],
+      "source_anchor": "deci-canonical-example",
+      "rationale": "p2p already strains as a skill: stateful identity, fragile transport, repeatable failures with structured recovery, natural substrate/contract split. It's the highest-signal first Habit.",
+      "alternatives": [
+        "tfork (terminal forking) as the canonical first Habit",
+        "a synthetic toy Habit with no real-world consumer"
+      ],
+      "review": null
+    },
+    {
+      "id": "deci-p2p-slice",
+      "kind": "decision",
+      "title": "p2p MVP slice is registered-peer messaging only",
+      "status": "ai-confident",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-canonical-example"
+      ],
+      "source_anchor": "deci-p2p-slice",
+      "rationale": "Connect-to-existing and spawn-new add fork-terminal and bootstrap-timing dependencies that would dominate the MVP. Registered-peer messaging exercises identity, routing, recovery, and evolution without that overhead.",
+      "alternatives": [
+        "include connect-to-existing-peer in the first slice",
+        "include spawn-new-peer (and therefore fork-terminal) in the first slice",
+        "ship the full p2p surface at once"
+      ],
+      "review": null
+    },
+    {
+      "id": "risk-habituation-unproven",
+      "kind": "risk",
+      "title": "Habituation may not actually produce useful evolution proposals",
+      "status": "open",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-canonical-example",
+        "deci-manual-evolution",
+        "deci-lifecycle-commands"
+      ],
+      "source_anchor": "risk-habituation-unproven",
+      "severity": "high",
+      "mitigation": "Use the p2p Habit on real cases for at least two weeks before judging. If `habit evolve p2p` cannot generate reviewable, specific proposals from accumulated ledger events, treat that as a failure of the contract design rather than of the user \u2014 iterate on contract shape and proposal heuristics.",
+      "review": null
+    },
+    {
+      "id": "deci-success-criteria",
+      "kind": "decision",
+      "title": "Definition of done: eight concrete success criteria",
+      "status": "ai-confident",
+      "confidence": "high",
+      "depends_on": [
+        "deci-mvp-shape",
+        "deci-lifecycle-commands",
+        "deci-canonical-example"
+      ],
+      "source_anchor": "deci-success-criteria",
+      "rationale": "Each criterion maps to one lifecycle verb plus the canonical example. Together they assert that the full loop is executable end-to-end against p2p, not just that the schemas exist on disk.",
+      "alternatives": [
+        "judge MVP success qualitatively after a real two-week dogfood instead of against a fixed checklist",
+        "drop the test-harness criterion and judge the loop by demo only",
+        "require a second canonical Habit beyond p2p before declaring done"
+      ],
+      "review": null
+    },
+    {
+      "id": "deci-impl-order",
+      "kind": "decision",
+      "title": "Build order: schemas, init, materialize, next/record, recover, evolve, p2p example",
+      "status": "ai-confident",
+      "confidence": "medium",
+      "depends_on": [
+        "deci-lifecycle-commands"
+      ],
+      "source_anchor": "deci-impl-order",
+      "rationale": "Substrate schemas anchor every later piece. Init and materialize are pure file-generation and the cheapest to land. next/record produces the first runnable loop. recover and evolve plug into the ledger that next/record builds. p2p is the integration test for everything.",
+      "alternatives": [
+        "build p2p end-to-end first, then generalize the substrate",
+        "build evolve before recover (evolve over ledger doesn't strictly require recover to exist)"
+      ],
+      "review": null
+    }
+  ]
+}
